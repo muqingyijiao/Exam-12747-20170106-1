@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>film列表</title>
+<link rel="stylesheet"
+	href="https://cdn.static.runoob.com/libs/bootstrap/3.3.7/css/bootstrap.min.css">
+<script
+	src="https://cdn.static.runoob.com/libs/jquery/2.1.1/jquery.min.js"></script>
+<script
+	src="https://cdn.static.runoob.com/libs/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<script type="text/javascript">
+	$(document)
+			.ready(
+
+					function() {
+						var selectType = "all";
+						var pageSize = $("#pageSize").val();
+						var addPageNum;
+						window.onload = function() {
+
+							var urlParam = window.location.search;
+							if (urlParam != null && urlParam != '') {
+								var params = urlParam.split('=');
+								getlist(params[1], 'all');
+							} else {
+								getlist(1, 'all');
+							}
+						};
+
+						function getlist(pageNum, selectType) {
+							if (selectType == 'all') {
+								getAll(pageNum);
+							} else {
+								getByCondition(pageNum);
+							}
+						}
+						;
+
+						function getAll(pageNum) {
+							$.ajax({
+								url : '../selectAllFilm.action',
+								type : 'POST', // GET
+								data : {
+									pageNum : pageNum,
+									pageSize : pageSize
+								},
+								dataType : 'json', // 返回的数据格式：json/xml/html/script/jsonp/text
+								success : function(data) {
+									console.log(data);
+									showList(data, pageNum);
+									addPageNum = Math
+											.ceil(data.filmPage.totalCount
+													/ pageSize);
+								}
+							});
+						}
+
+						function getByCondition(pageNum) {
+							var title = $("#titleQuery").val();
+							var description = $("#descriptionQuery").val();
+							$.ajax({
+								url : '../selectByCondition.action',
+								type : 'POST', // GET
+								data : {
+									title : title,
+									description : description,
+									pageNum : pageNum,
+									pageSize : pageSize
+								},
+								dataType : 'json', // 返回的数据格式：json/xml/html/script/jsonp/text
+								success : function(data) {
+									showList(data, pageNum);
+								}
+							});
+						}
+
+						function showList(data, pageNum) {
+							var totalPage = Math.ceil(data.filmPage.totalCount
+									/ pageSize);
+							$("#pageCount").text(totalPage);
+							$("#lastPage").val(totalPage);
+							$("#pageNo").val(pageNum);
+							if (pageNum > totalPage) {
+								$("#pageNo").val(totalPage);
+							}
+							$("#pageNo").attr("max", totalPage);
+							$("#pageSize").val(pageSize);
+							$
+									.each(
+											data.list,
+											function(index, item) {
+												$("#table")
+														.append(
+																"<tr class='trList'>"
+																		+ "<td align='center'>"
+																		+ item.film_id
+																		+ "</td>"
+																		+ "<td align='center'>"
+																		+ item.title
+																		+ "</td>"
+																		+ "<td align='center'>"
+																		+ item.description
+																		+ "</td>"
+																		+ "<td align='center'>"
+																		+ item.language
+																		+ "</td>"
+																		+ "<td align='center'><a href='filmUpdate.html?film_id="
+																		+ item.film_id
+																		+ "&pageNum="
+																		+ pageNum
+																		+ "'>修改</a>&nbsp;&nbsp;"
+																		+ "<a href='javascript:;' class='deleteFilm' lang='"
+								+item.film_id
+								+"'>删除</a>"
+																		+ "</td>"
+																		+ "</tr>");
+											});
+
+							$(".deleteFilm").on("click", function() {
+								var btn = $(this);
+								var flag = window.confirm("您确定要删除该条记录吗？");
+								if (flag) {
+									var pageNum = $("#pageNo").val();
+									var film_id = btn.attr("lang");
+									$.ajax({
+										url : '../delete.action',
+										type : 'GET', // GET
+										data : {
+											pageNum : pageNum,
+											film_id : film_id
+										},
+										dataType : 'json', // 返回的数据格式：json/xml/html/script/jsonp/text
+										success : function(data) {
+											if (data == 1) {
+												//location.href = "../film/filmList.html?pageNum="+ pageNum;
+												btn.parent().parent().remove();
+											} else {
+												alert("存在外键约束不能删除");
+											}
+										}
+									});
+								}
+							});
+
+						}
+
+						$("#firstPage").click(function() {
+							var cur = parseInt($("#pageNo").val());
+							if (cur == 1) {
+								alert("已经是第一页");
+							} else {
+								$(".trList").remove();
+								getlist(1, selectType);
+							}
+						});
+
+						$("#lastPage").click(function() {
+							var cur = parseInt($("#pageNo").val());
+							var lastCur = parseInt($("#lastPage").val());
+							if (cur == lastCur) {
+								alert("已经是最后一页");
+							} else {
+								$(".trList").remove();
+								var lastPage = $("#lastPage").val();
+								getlist(lastPage, selectType);
+							}
+						});
+
+						$("#pageNo").keydown(function(event) {
+							if (event.keyCode == "13") {// / / keyCode=13是回车键
+								$(".trList").remove();
+								var pageNo = $("#pageNo").val();
+								getlist(pageNo, selectType);
+							}
+						});
+
+						$("#previousPage").click(
+								function() {
+									var previousPage = parseInt($("#pageNo")
+											.val()) - 1;
+									if (previousPage == 0) {
+										alert("已经是第一页");
+									} else {
+										$(".trList").remove();
+										getlist(previousPage, selectType);
+									}
+								});
+
+						$("#nextPage").click(function() {
+							var nextPage = parseInt($("#pageNo").val()) + 1;
+							var totalPage = parseInt($("#lastPage").val()) + 1;
+							if (nextPage == totalPage) {
+								alert("已经是最后一页");
+							} else {
+								$(".trList").remove();
+								getlist(nextPage, selectType);
+							}
+						});
+
+						$("#addFilm")
+								.click(
+										function() {
+											location.href = "../film/filmAdd.html?pageNum="
+													+ addPageNum;
+										});
+
+						$("#queryFilm").click(function() {
+							$(".trList").remove();
+							selectType = "condition";
+							getlist(1, selectType);
+						});
+
+						$("#pageSize").change(function() {
+							var currentPage = parseInt($("#pageNo").val());
+							$(".trList").remove();
+							pageSize = $("#pageSize").val();
+							getlist(currentPage, selectType);
+						});
+					});
+</script>
+<style type="text/css">
+a {
+	text-decoration: none;
+}
+</style>
+</head>
+<body>
+	<form>
+		<table class="table table-hover" id="table">
+			<tr>
+				<td colspan="6" align="center">file列表</td>
+			</tr>
+			<tr>
+				<td colspan="6" align="center"><input type="button" value="增加"
+					id="addFilm">title:<input type="text" id="titleQuery">description:<input
+					type="text" id="descriptionQuery"><input type="button"
+					value="查询" id="queryFilm"></td>
+			</tr>
+			<tr>
+				<td align="center">film_id</td>
+				<td align="center">title</td>
+				<td align="center">description</td>
+				<td align="center">language</td>
+				<td colspan="2" align="center">操&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;作</td>
+			</tr>
+		</table>
+
+	</form>
+	<br>
+	<div class="pageDiv page" style="display: block; text-align: center;">
+		<a href="javascript:;" id="firstPage">首页</a> <a href="javascript:;"
+			id="previousPage" style="margin-left: 20px;">上一页</a> 第<input
+			style="width: 50px; text-align: center;" type="number" id="pageNo"
+			min="1" />页 <span id="totalPage">（共<span> <font
+				id="pageCount"></font></span>页， 每页<select id="pageSize"><option
+					value="10" selected="selected">10</option>
+				<option value="20">20</option>
+				<option value="50">50</option></select>条）
+		</span><a href="javascript:;" id="nextPage">下一页</a><a href="javascript:;"
+			id="lastPage" style="margin-left: 20px;"><input id='lastPage'
+			style='display: none;'>末页</a>
+	</div>
+</body>
+</html>

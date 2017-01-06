@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+<link rel="stylesheet"
+	href="https://cdn.static.runoob.com/libs/bootstrap/3.3.7/css/bootstrap.min.css">
+<script
+	src="https://cdn.static.runoob.com/libs/jquery/2.1.1/jquery.min.js"></script>
+<script
+	src="https://cdn.static.runoob.com/libs/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<script type="text/javascript">
+	$(document)
+			.ready(
+					function() {
+
+						window.onload = function() {
+							var urlParam = window.location.search;
+							var params = urlParam.split('&');
+							var film_id = params[0].split('=')[1];
+							var pageNum = params[1].split('=')[1];
+							$("#pageNum").val(pageNum);
+							getFilm(film_id);
+						};
+
+						function getFilm(film_id) {
+							$.ajax({
+								url : '../toUpdate.action',
+								type : 'GET', // GET
+								data : {
+									film_id : film_id
+								},
+								dataType : 'json', // 返回的数据格式：json/xml/html/script/jsonp/text
+								success : function(data) {
+									$("#film_id").val(data.filmVo.film_id);
+									$("#title").val(data.filmVo.title);
+									$("#description").val(
+											data.filmVo.description);
+									$.each(data.list, function(index, item) {
+										$("#languageSelect").append(
+												"<option value='"+item.language_id+"'>"
+														+ item.name
+														+ "</option>");
+										if(item.language_id==data.filmVo.language_id){
+											$("option").attr("selected","selected");
+										}
+									});
+								}
+							});
+						}
+
+						$("#goBack").click(function() {
+							location.href = "../film/filmList.html";
+						});
+
+						$("#update")
+								.click(
+										function() {
+											var film_id = $("#film_id").val();
+											var pageNum = $("#pageNum").val();
+											var title = $("#title").val();
+											var language_id = $(
+													"#languageSelect").val();
+											var description = $("#description")
+													.val();
+											$
+													.ajax({
+														url : '../update.action',
+														type : 'POST', // GET
+														data : {
+															film_id : film_id,
+															pageNum : pageNum,
+															title : title,
+															description : description,
+															language_id : language_id
+														},
+														dataType : 'json', // 返回的数据格式：json/xml/html/script/jsonp/text
+														success : function(data) {
+															location.href = "../film/filmList.html"
+																	+"?pageNum="
+																	+ data;
+														}
+													});
+
+										});
+
+					});
+</script>
+</head>
+<body>
+	<input id="pageNum" style="display: none;">
+	<input id="selectType" style="display: none;">
+	<form>
+		<table class="table table-hover">
+			<tr>
+				<td align="center" colspan="2">电影修改</td>
+			</tr>
+			<tr>
+				<td align="center">电影id</td>
+				<td align="center"><input type="text" id="film_id"
+					readonly="readonly"></td>
+			</tr>
+			<tr>
+				<td align="center">电影title</td>
+				<td align="center"><input type="text" id="title"></td>
+			</tr>
+			<tr>
+				<td align="center">电影描述</td>
+				<td align="center"><input type="text" id="description"></td>
+			</tr>
+			<tr>
+				<td align="center">电影语言</td>
+				<td align="center"><select name="languageSelect"
+					style="width: 150px;" id="languageSelect"></select></td>
+			</tr>
+			<tr>
+				<td align="center" colspan="2"><input type="button" id="update"
+					value="修改" style="margin-right: 100px;"><input
+					type="button" id="goBack" value="返回" style="margin-left: 100px;"></td>
+			</tr>
+		</table>
+	</form>
+
+</body>
+</html>

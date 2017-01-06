@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.yijiao.ssm.mapper.CustomerMapper">
+	<select id="selectCount" parameterType="cn.yijiao.ssm.po.Customer"
+		resultType="int">
+		select count(*) from customer where 1=1
+		<if test="first_name!=null and first_name!=''">
+			and first_name=#{first_name}
+		</if>
+	</select>
+</mapper>

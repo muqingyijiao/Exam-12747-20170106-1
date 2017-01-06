@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+<link rel="stylesheet"
+	href="https://cdn.static.runoob.com/libs/bootstrap/3.3.7/css/bootstrap.min.css">
+<script
+	src="https://cdn.static.runoob.com/libs/jquery/2.1.1/jquery.min.js"></script>
+<script
+	src="https://cdn.static.runoob.com/libs/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<script type="text/javascript">
+	$(document)
+			.ready(
+					function() {
+						var urlParam = window.location.search;
+						var params = urlParam.split('=');
+						var pageNum = params[1];
+
+						window.onload = function() {
+							$.ajax({
+								url : '../languageList.action',
+								type : 'POST', // GET
+								dataType : 'json', // 返回的数据格式：json/xml/html/script/jsonp/text
+								success : function(data) {
+									$.each(data, function(index, item) {
+										$("#languageSelect").append(
+												"<option value='"+item.language_id+"'>"
+														+ item.name
+														+ "</option>");
+									});
+								}
+							});
+
+						};
+
+						$("#goBack").click(function() {
+							location.href = "../film/filmList.html";
+						});
+
+						$("#add")
+								.click(
+										function() {
+											var title = $("#title").val();
+											var description = $("#description")
+													.val();
+											var language_id = $(
+													"#languageSelect").val();
+											$
+													.ajax({
+														url : '../add.action',
+														type : 'POST', // GET
+														data : {
+															title : title,
+															description : description,
+															pageNum : pageNum,
+															language_id : language_id
+														},
+														dataType : 'json', // 返回的数据格式：json/xml/html/script/jsonp/text
+														success : function(data) {
+															if (data == 0) {
+																alert("请不要插入空记录");
+															} else {
+																location.href = "../film/filmList.html?pageNum="
+																		+ data;
+															}
+														}
+													});
+
+										});
+					});
+</script>
+</head>
+<body>
+	<input id="pageNum" style="display: none;">
+	<form>
+		<table class="table table-hover">
+			<tr>
+				<td align="center" colspan="2">电影添加</td>
+			</tr>
+			<tr>
+				<td align="center">电影title</td>
+				<td align="center"><input type="text" id="title"></td>
+			</tr>
+			<tr>
+				<td align="center">电影描述</td>
+				<td align="center"><input type="text" id="description"></td>
+			</tr>
+			<tr>
+				<td align="center">电影语言</td>
+				<td align="center"><select name="languageSelect"
+					style="width: 150px;" id="languageSelect"></select></td>
+			</tr>
+			<tr>
+				<td align="center" colspan="2"><input type="button" id="add"
+					value="增加" style="margin-right: 100px;"><input
+					type="button" id="goBack" value="返回" style="margin-left: 100px;"></td>
+			</tr>
+		</table>
+	</form>
+
+</body>
+</html>
